@@ -11,18 +11,25 @@ from utils import *
 class Cracker:
         
         @staticmethod 
-        def crack_dict(md5, file):
+        def crack_dict(md5, file, order, done_queue):
+
             try:
-                fileOpen = open(file, "r")
                 trouver = False
-                for mot in fileOpen.readlines():
+                fileOpen = open(file, "r")
+                if Order.ASCENDANT == order:
+                    continu = reversed(list(fileOpen.readlines()))
+                else:
+                    continu = fileOpen.readlines()
+                for mot in continu:
                     mot = mot.strip("\n")
                     hashmd5 = hashlib.md5(mot.encore("utf-8")).hexdigest()
                     if hashmd5 == md5:
                         print(Couleur.VERT+ "[+] Mot de passe trouver : " +str(mot)+ "(" + hashmd5 + ")"+ Couleur.FIN)
                         trouver = True
+                        done_queue.put("TROUVE")
                 if not trouver:
                     print( Couleur.ROUGE + "[-] Mot de passe non trouvé :(" +Couleur.FIN)
+                    done_queue.put("NON TROUVE")
                 fileOpen.close()
             except FileNotFoundError:
                 print(Couleur.ROUGE + "[-] File not found exception!" +Couleur.FIN)
@@ -67,3 +74,10 @@ class Cracker:
                 print(Couleur.ROUGE + "[-] HASH NOT FOUND IN GOOGLE!" + Couleur.FIN)
             else:
                 print(Couleur.VERT + "[+] HASH JACKPOT" +url+ Couleur.FIN)
+  
+        @staticmethod
+        def work(work_queue, done_queue, md5, file, order):
+            o = work_queue.get()
+            o = crack_dict(md5, file, order, done_queue)  
+             
+            
